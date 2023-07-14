@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS= -Wall -ggdb
+CFLAGS= -Wall -ggdb -g 
 
-build: ./src/pixeling.c
-	$(CC) $(CFLAGS) -o pixeling ./src/pixeling.c
-	./pixeling
+build: ./src/joplin.c
+	$(CC) $(CFLAGS) -o joplin ./src/joplin.c
+	./joplin
 	magick output.ppm output.png
