@@ -1,4 +1,4 @@
-## Simple little graphic library
+## Simple little tiny stupid play-around graphic library
 To play around with simple shapes
 
 ![alt text](https://github.com/Whoopalla/Joplin/blob/master/examples/hallucinogenic_rects.png?raw=true)
