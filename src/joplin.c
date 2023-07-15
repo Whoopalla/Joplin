@@ -5,16 +5,17 @@
 #include <assert.h>
 #include <time.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define ABS(x) (x) > 0 ? (x) : ((~x) + 1)
 
 #define RED_COLOR 0xFF0000FF
-#define BLUE_COLOR 0xFFFF0000
+#define BLUE_COLOR 0xFF625b04
 #define WHITE_COLOR 0xFFFFFFFF
 
-#define IMAGE_WIDTH 100
-#define IMAGE_HEIGHT 100
+#define IMAGE_WIDTH 1920
+#define IMAGE_HEIGHT 1080
 #define OUTPUT_FILE_PPM "output.ppm"
 
 typedef uint32_t Color32;
@@ -41,57 +42,29 @@ void draw_if_within_image(int x, int y, Color32 color) {
     }
 }
 
-void draw_circle(Point center, size_t r, Color32 color) {
+void draw_circle(Point center, size_t r, Color32 color, bool fill) {
     int ty = center.y - r;
     int by = center.y + r;
     int lx = center.x - r;
     int rx = center.x + r;
 
     for (int y = ty; y <= by; y++) {
-        for (int x = lx; x <= rx; x++) {
-            if (sqr_distance(center.x, center.y, x, y) - (r * r) < r) {
-                if (is_within_image(x, y)) {
-                    image[y][x] = color;
+        if (is_within_image(0, y)) {
+            for (int x = lx; x <= rx; x++) {
+                if (fill) {
+                    if (sqr_distance(center.x, center.y, x, y) < (r * r)) {
+                        if (is_within_image(x, y)) {
+                            image[y][x] = color;
+                        }
+                    }
+                } else {
+                    if (sqr_distance(center.x, center.y, x, y) - (r * r) < 2 * r) {
+                        if (is_within_image(x, y)) {
+                            image[y][x] = color;
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-
-void draw_circle_fancy(Point center, size_t r, Color32 color) {
-    int x = r, y = 0;
-    if (r > 0) {
-        draw_if_within_image(y + center.x, x + center.y, color);
-        draw_if_within_image(y + center.x, -x + center.y, color);
-        draw_if_within_image(x + center.x, y + center.y, color);
-        draw_if_within_image(-x + center.x, y + center.y, color);
-    }
-
-    int P = 1 - r;
-    while (x > y) {
-        y++;
-
-        if (P <= 0) {
-            P = P + 2 * y + 1;
-        } else {
-            x--;
-            P = P + 2 * y - 2 * x + 1;
-        }
-
-        if (x < y) {
-            break;
-        }
-
-        draw_if_within_image(x + center.x, y + center.y, color);
-        draw_if_within_image(-x + center.x, y + center.y, color);
-        draw_if_within_image(x + center.x, -y + center.y, color);
-        draw_if_within_image(-x + center.x, -y + center.y, color);
-
-        if (x != y) {
-            draw_if_within_image(y + center.x, x + center.y, color);
-            draw_if_within_image(-y + center.x, x + center.y, color);
-            draw_if_within_image(y + center.x, -x + center.y, color);
-            draw_if_within_image(-y + center.x, -x + center.y, color);
         }
     }
 }
@@ -193,23 +166,12 @@ void render_image(char *filepath) {
 
 int main(int argc, char **argv) {
     time_t start = time(NULL);
-    fill_image(WHITE_COLOR);
+    fill_image(BLUE_COLOR);
     srand(time(NULL));
-    // for (int i = 0; i < IMAGE_WIDTH; i++) {
-    //     Point center = {.x = IMAGE_WIDTH / 2, .y = IMAGE_HEIGHT / 2};
 
-    //     draw_rectangle(center, 16 * i, 9 * i, palette[rand() % (sizeof(palette) / sizeof(Color32))], 9);
-    // }
+    Point center = {.x = IMAGE_WIDTH / 2, .y = IMAGE_HEIGHT / 2};
 
-    Point center = {.x = IMAGE_WIDTH / 2 - 25, .y = IMAGE_HEIGHT / 2};
-
-    for (size_t i = 0; i < 3; i++) {
-        draw_circle(center, 10 * i, RED_COLOR);
-    }
-    center.x += 50;
-    for (size_t i = 0; i < 3; i++) {
-        draw_circle_fancy(center, 10 * i, BLUE_COLOR);
-    }
+    draw_circle(center, 100, BLUE_COLOR, true);
 
     render_image(OUTPUT_FILE_PPM);
     time_t end = time(NULL);
