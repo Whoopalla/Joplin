@@ -19,11 +19,6 @@
 
 typedef uint32_t Color32;
 
-typedef struct {
-    int x, y;
-    Color32 color;
-} Seed;
-
 typedef struct Point {
     int x, y;
 } Point;
@@ -31,6 +26,10 @@ typedef struct Point {
 Color32 palette[] = {0x91c4f2, 0x8ca0d7, 0x9d79bc, 0xa14da0, 0x7e1f86, 0x231651, 0x4dccbd, 0x2374ab, 0xff8484};
 
 Color32 image[IMAGE_HEIGHT][IMAGE_WIDTH];
+
+int sqr_distance(int x1, int y1, int x2, int y2) {
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+}
 
 bool is_within_image(int x, int y) {
     return y >= 0 && y < IMAGE_HEIGHT && x >= 0 && x < IMAGE_WIDTH;
@@ -43,6 +42,23 @@ void draw_if_within_image(int x, int y, Color32 color) {
 }
 
 void draw_circle(Point center, size_t r, Color32 color) {
+    int ty = center.y - r;
+    int by = center.y + r;
+    int lx = center.x - r;
+    int rx = center.x + r;
+
+    for (int y = ty; y <= by; y++) {
+        for (int x = lx; x <= rx; x++) {
+            if (sqr_distance(center.x, center.y, x, y) - (r * r) < r) {
+                if (is_within_image(x, y)) {
+                    image[y][x] = color;
+                }
+            }
+        }
+    }
+}
+
+void draw_circle_fancy(Point center, size_t r, Color32 color) {
     int x = r, y = 0;
     if (r > 0) {
         draw_if_within_image(y + center.x, x + center.y, color);
@@ -130,10 +146,6 @@ void fill_rectangle(Point center, size_t width, size_t height, Color32 color, si
     }
 }
 
-int sqr_distance(int x1, int y1, int x2, int y2) {
-    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-}
-
 void fill_image(Color32 color) {
     for (int y = 0; y < IMAGE_HEIGHT; y++) {
         for (int x = 0; x < IMAGE_WIDTH; x++) {
@@ -189,8 +201,15 @@ int main(int argc, char **argv) {
     //     draw_rectangle(center, 16 * i, 9 * i, palette[rand() % (sizeof(palette) / sizeof(Color32))], 9);
     // }
 
-    Point center = {.x = IMAGE_WIDTH / 2, .y = IMAGE_HEIGHT / 2};
-    draw_circle(center, 50, RED_COLOR);
+    Point center = {.x = IMAGE_WIDTH / 2 - 25, .y = IMAGE_HEIGHT / 2};
+
+    for (size_t i = 0; i < 3; i++) {
+        draw_circle(center, 10 * i, RED_COLOR);
+    }
+    center.x += 50;
+    for (size_t i = 0; i < 3; i++) {
+        draw_circle_fancy(center, 10 * i, BLUE_COLOR);
+    }
 
     render_image(OUTPUT_FILE_PPM);
     time_t end = time(NULL);
