@@ -11,7 +11,8 @@
 #define ABS(x) (x) > 0 ? (x) : ((~x) + 1)
 
 #define RED_COLOR 0xFF0000FF
-#define BLUE_COLOR 0xFF625b04
+#define BLUEISH_COLOR 0xFF625b04
+#define BLUE_COLOR 0xFFFF0000
 #define WHITE_COLOR 0xFFFFFFFF
 
 #define IMAGE_WIDTH 1920
@@ -42,25 +43,27 @@ void draw_if_within_image(int x, int y, Color32 color) {
     }
 }
 
-void draw_circle(Point center, size_t r, Color32 color, bool fill) {
+void draw_circle(Point center, size_t r, Color32 color, size_t stroke, bool fill) {
     int ty = center.y - r;
     int by = center.y + r;
     int lx = center.x - r;
     int rx = center.x + r;
 
-    for (int y = ty; y <= by; y++) {
-        if (is_within_image(0, y)) {
-            for (int x = lx; x <= rx; x++) {
-                if (fill) {
-                    if (sqr_distance(center.x, center.y, x, y) < (r * r)) {
-                        if (is_within_image(x, y)) {
-                            image[y][x] = color;
+    for (int s = 0; s <= stroke; s++) {
+        for (int y = ty - s; y <= by + s; y++) {
+            if (is_within_image(0, y)) {
+                for (int x = lx - s; x <= rx + s; x++) {
+                    if (fill) {
+                        if (sqr_distance(center.x, center.y, x, y) < ((r + s) * (r + s)) - s) {
+                            if (is_within_image(x, y)) {
+                                image[y][x] = color;
+                            }
                         }
-                    }
-                } else {
-                    if (sqr_distance(center.x, center.y, x, y) - (r * r) < 2 * r) {
-                        if (is_within_image(x, y)) {
-                            image[y][x] = color;
+                    } else {
+                        if (sqr_distance(center.x, center.y, x, y) - ((r + s) * (r + s)) < 2 * (r + s) + 1) {
+                            if (is_within_image(x, y)) {
+                                image[y][x] = color;
+                            }
                         }
                     }
                 }
@@ -72,11 +75,11 @@ void draw_circle(Point center, size_t r, Color32 color, bool fill) {
 void draw_rectangle(Point center, size_t width, size_t height, Color32 color, size_t stroke, bool fill) {
     int ty = center.y - height / 2 - height % 2 + 1;
     int by = center.y + height / 2;
-    int lx = center.x - width / 2 - height % 2 + 1;
+    int lx = center.x - width / 2 - width % 2 + 1;
     int rx = center.x + width / 2;
 
-    for (size_t s = 0; s < stroke; s++) {
-        for (int x = lx - s; x <= rx + s; x++) {
+    for (size_t s = 0; s <= stroke; s++) {
+        for (int x = lx - s + 1; x <= rx + s; x++) {
             if (is_within_image(x, ty - s) && is_within_image(x, by + s)) {
                 image[ty - s][x] = color;
                 image[by + s][x] = color;
@@ -166,12 +169,14 @@ void render_image(char *filepath) {
 
 int main(int argc, char **argv) {
     time_t start = time(NULL);
-    fill_image(BLUE_COLOR);
+    fill_image(BLUEISH_COLOR);
     srand(time(NULL));
 
     Point center = {.x = IMAGE_WIDTH / 2, .y = IMAGE_HEIGHT / 2};
+    draw_rectangle(center, 1, IMAGE_HEIGHT, RED_COLOR, 0, false);
+    draw_rectangle(center, IMAGE_WIDTH, 1, RED_COLOR, 0, false);
 
-    draw_circle(center, 100, BLUE_COLOR, true);
+    draw_circle(center, 100, BLUE_COLOR, 5, false);
 
     render_image(OUTPUT_FILE_PPM);
     time_t end = time(NULL);
