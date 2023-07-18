@@ -5,9 +5,9 @@
 #include <assert.h>
 #include <time.h>
 #include <stdbool.h>
-#include <math.h>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define ABS(x) (x) > 0 ? (x) : ((~x) + 1)
 
 #define RED_COLOR 0xFF0000FF
@@ -40,6 +40,30 @@ bool is_within_image(int x, int y) {
 void draw_if_within_image(int x, int y, Color32 color) {
     if (is_within_image(x, y)) {
         image[y][x] = color;
+    }
+}
+
+void draw_line(Point a, Point b, Color32 color) {
+    int dx = b.x - a.x;
+    int dy = b.y - a.y;
+
+    int yi = 1;
+    if (dy < 0) {
+        yi = -1;
+        dy = -dy;
+    }
+    int d = 2 * dy - dx;
+    int y = a.y;
+
+    for (int x = MIN(a.x, b.x); x <= MAX(a.x, b.x); x++) {
+        if (is_within_image(x, y)) {
+            image[y][x] = color;
+        }
+        if (d > 0) {
+            y += yi;
+            d += 2 * (dy - dx);
+        }
+        d += 2 * dy;
     }
 }
 
@@ -105,23 +129,6 @@ void draw_rectangle(Point center, size_t width, size_t height, Color32 color, si
     }
 }
 
-void fill_rectangle(Point center, size_t width, size_t height, Color32 color, size_t stroke) {
-    int ty = center.y - height / 2;
-    int by = center.y + height / 2;
-    int lx = center.x - width / 2;
-    int rx = center.x + width / 2;
-
-    for (int y = ty; y < by + stroke; y++) {
-        for (size_t s = 0; s < stroke; s++) {
-            for (int x = lx - s; x <= rx + s; x++) {
-                if (is_within_image(x, ty - s) && is_within_image(x, by + s)) {
-                    image[y][x] = color;
-                }
-            }
-        }
-    }
-}
-
 void fill_image(Color32 color) {
     for (int y = 0; y < IMAGE_HEIGHT; y++) {
         for (int x = 0; x < IMAGE_WIDTH; x++) {
@@ -173,10 +180,9 @@ int main(int argc, char **argv) {
     srand(time(NULL));
 
     Point center = {.x = IMAGE_WIDTH / 2, .y = IMAGE_HEIGHT / 2};
-    draw_rectangle(center, 1, IMAGE_HEIGHT, RED_COLOR, 0, false);
-    draw_rectangle(center, IMAGE_WIDTH, 1, RED_COLOR, 0, false);
+    Point b = {.x = 0, .y = IMAGE_HEIGHT};
 
-    draw_circle(center, 100, BLUE_COLOR, 5, false);
+    draw_line(center, b, RED_COLOR);
 
     render_image(OUTPUT_FILE_PPM);
     time_t end = time(NULL);
