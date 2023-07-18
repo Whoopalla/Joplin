@@ -15,7 +15,7 @@ void spiral_circles() {
     for (int i = 0; i <= 1000 * PI; i++) {
         center.x = x + (a + b * i) * cos(i);
         center.y = y + (a + b * i) * sin(i);
-        draw_circle(center, 30 + i / 100, palette[rand() % sizeof(palette) / sizeof(Color32)], true);
+        draw_circle(center, 30 + i / 100, palette[rand() % sizeof(palette) / sizeof(Color32)],1, true);
     }
 
     render_image(OUTPUT_FILE_PPM);

@@ -8,7 +8,7 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#define ABS(x) (x) > 0 ? (x) : ((~x) + 1)
+#define ABS(x) ((x) > 0) ? (x) : ((~x) + 1)
 
 #define RED_COLOR 0xFF0000FF
 #define BLUEISH_COLOR 0xFF625b04
@@ -43,7 +43,7 @@ void draw_if_within_image(int x, int y, Color32 color) {
     }
 }
 
-void draw_line(Point a, Point b, Color32 color) {
+static void plotline_low(Point a, Point b, Color32 color) {
     int dx = b.x - a.x;
     int dy = b.y - a.y;
 
@@ -55,15 +55,76 @@ void draw_line(Point a, Point b, Color32 color) {
     int d = 2 * dy - dx;
     int y = a.y;
 
-    for (int x = MIN(a.x, b.x); x <= MAX(a.x, b.x); x++) {
+    for (int x = a.x; x <= b.x; x++) {
         if (is_within_image(x, y)) {
             image[y][x] = color;
         }
         if (d > 0) {
             y += yi;
             d += 2 * (dy - dx);
+        } else {
+            d += 2 * dy;
         }
-        d += 2 * dy;
+    }
+}
+
+static void plotline_high(Point a, Point b, Color32 color) {
+    int dx = b.x - a.x;
+    int dy = b.y - a.y;
+
+    int xi = 1;
+    if (dy < 0) {
+        xi = -1;
+        dx = -dx;
+    }
+    int d = 2 * dx - dy;
+    int x = a.x;
+
+    for (int y = a.y; y <= b.y; y++) {
+        if (is_within_image(x, y)) {
+            image[y][x] = color;
+        }
+        if (d > 0) {
+            x += xi;
+            d += 2 * (dx - dy);
+        } else {
+            d += 2 * dx;
+        }
+    }
+}
+
+void draw_line(Point a, Point b, Color32 color, size_t stroke) {
+    if (a.x == b.x && a.y == b.y) return;
+    for (int s = 0; s <= stroke; s++) {
+        if (a.x < b.x && a.y > b.y) {
+            if (s > 0) {
+                draw_line((Point){.x = a.x + 1, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
+                draw_line((Point){.x = a.x, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
+            }
+            a.x += 1, a.y += 1;
+            b.x += 1, b.y += 1;
+        }
+        else {
+            if (s > 0) {
+                draw_line((Point){.x = a.x , .y = a.y + 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
+                draw_line((Point){.x = a.x, .y = a.y + 1}, (Point){.x = b.x , .y = b.y - 1}, color, 0);
+            }
+            a.x += 1, a.y -= 1;
+            b.x += 1, b.y += 1;
+        }
+        if (ABS(a.y - b.y) < ABS(a.x - b.x)) {
+            if (a.x > b.x) {
+                plotline_low(b, a, color);
+            } else {
+                plotline_low(a, b, color);
+            }
+        } else {
+            if (a.y > b.y) {
+                plotline_high(b, a, color);
+            } else {
+                plotline_high(a, b, color);
+            }
+        }
     }
 }
 
@@ -179,13 +240,35 @@ int main(int argc, char **argv) {
     fill_image(BLUEISH_COLOR);
     srand(time(NULL));
 
-    Point center = {.x = IMAGE_WIDTH / 2, .y = IMAGE_HEIGHT / 2};
-    Point b = {.x = 0, .y = IMAGE_HEIGHT};
+    int x = 0, y = 0, step = 60, stroke = 10;
+    Point a, b;
+    while (x < IMAGE_WIDTH * 4) {
+        // Relative negative value, 'cos stroke is added by X axis.
+        a.x = 0;
+        a.y = y;
+        b.x = x;
+        b.y = 0;
+        draw_line(a, b, palette[rand() % sizeof(palette) / sizeof(Color32)], stroke);
 
-    draw_line(center, b, RED_COLOR);
+        x += step;
+        y += step;
+    }
+
+    x = 0;
+    y = IMAGE_HEIGHT;
+    while (x < IMAGE_WIDTH * 4) {
+        // Relative negative value, 'cos stroke is added by X axis.
+        a.x = 0;
+        a.y = y;
+        b.x = x;
+        b.y = IMAGE_HEIGHT;
+        draw_line(a, b, palette[rand() % sizeof(palette) / sizeof(Color32)], stroke);
+
+        x += step;
+        y -= step;
+    }
 
     render_image(OUTPUT_FILE_PPM);
-    time_t end = time(NULL);
-    printf("Time spent: %llds\n", end - start);
+    printf("Time spent: %llds\n", time(NULL) - start);
     return 0;
 }
