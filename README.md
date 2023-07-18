@@ -16,7 +16,7 @@ There are programs ([ImageMagick](https://imagemagick.org/index.php), for exampl
 ![Little cerles in different color](https://github.com/Whoopalla/Joplin/blob/master/examples/little_circles.png?raw=true)
 *Little filled cerles*
 
-
+# Build and run
 
 You may need to reconfigure the makefile. In its current state it builds the program, runs it, and converts ppm output to png format, using [ImageMagick](https://imagemagick.org/index.php).
 
