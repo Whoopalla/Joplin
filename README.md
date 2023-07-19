@@ -4,14 +4,14 @@
 Program creates image in [ppm](https://en.wikipedia.org/wiki/Netpbm) (p6) format. Which is good for pixel editing, but bad for storing images.
 There are programs ([ImageMagick](https://imagemagick.org/index.php), for example) and online converters that will easily convert from ppm to png or jpeg or whatever.
 
-![Concentric rectangles in different color](https://github.com/Whoopalla/Joplin/blob/master/examples/concentric_rects.png?raw=true)
-*Concentric rectangles*
+![Perpendecular lines in different collors](https://github.com/Whoopalla/Joplin/blob/master/examples/perpendecular_lines.png?raw=true)
+*Perpendecular lines*
 
 ![Spiral circles in different color](https://github.com/Whoopalla/Joplin/blob/master/examples/hallucinogenic_circles.png?raw=true)
 *Hallucinogenic filled circles*
 
-![Perpendecular lines in different collors](https://github.com/Whoopalla/Joplin/blob/master/examples/perpendecular_lines.png?raw=true)
-*Perpendecular lines*
+![Concentric rectangles in different color](https://github.com/Whoopalla/Joplin/blob/master/examples/concentric_rects.png?raw=true)
+*Concentric rectangles*
 
 ### Build and run
 
