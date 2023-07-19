@@ -97,8 +97,6 @@ void draw_line(Point a, Point b, Color32 color, size_t stroke) {
     if (a.x == b.x && a.y == b.y) return;
     for (size_t s = 0; s <= stroke; s++) {
         if (s > 0) {
-            // draw_line((Point){.x = a.x + 1, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
-            // draw_line((Point){.x = a.x, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
             draw_line((Point){.x = a.x--, .y = a.y}, (Point){.x = b.x--, .y = b.y}, color, 0);
         }
 
@@ -115,15 +113,6 @@ void draw_line(Point a, Point b, Color32 color, size_t stroke) {
                 plotline_high(a, b, color);
             }
         }
-
-        // if (a.x < b.x && a.y > b.y) {
-        //     a.x += 1, a.y += 1;
-        //     b.x += 1, b.y += 1;
-        // }
-        // else if (a.x > b.x && a.y < b.y) {
-        //     a.x += 1, a.y -= 1;
-        //     b.x += 1, b.y -= 1;
-        // }
     }
 }
 
