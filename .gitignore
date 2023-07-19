@@ -1,3 +1,4 @@
 .vscode/
+examples_build/
 *.exe
 output*

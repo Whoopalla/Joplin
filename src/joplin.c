@@ -95,23 +95,13 @@ static void plotline_high(Point a, Point b, Color32 color) {
 
 void draw_line(Point a, Point b, Color32 color, size_t stroke) {
     if (a.x == b.x && a.y == b.y) return;
-    for (int s = 0; s <= stroke; s++) {
-        if (a.x < b.x && a.y > b.y) {
-            if (s > 0) {
-                draw_line((Point){.x = a.x + 1, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
-                draw_line((Point){.x = a.x, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
-            }
-            a.x += 1, a.y += 1;
-            b.x += 1, b.y += 1;
+    for (size_t s = 0; s <= stroke; s++) {
+        if (s > 0) {
+            // draw_line((Point){.x = a.x + 1, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
+            // draw_line((Point){.x = a.x, .y = a.y - 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
+            draw_line((Point){.x = a.x--, .y = a.y}, (Point){.x = b.x--, .y = b.y}, color, 0);
         }
-        else {
-            if (s > 0) {
-                draw_line((Point){.x = a.x , .y = a.y + 1}, (Point){.x = b.x, .y = b.y - 1}, color, 0);
-                draw_line((Point){.x = a.x, .y = a.y + 1}, (Point){.x = b.x , .y = b.y - 1}, color, 0);
-            }
-            a.x += 1, a.y -= 1;
-            b.x += 1, b.y += 1;
-        }
+
         if (ABS(a.y - b.y) < ABS(a.x - b.x)) {
             if (a.x > b.x) {
                 plotline_low(b, a, color);
@@ -125,6 +115,15 @@ void draw_line(Point a, Point b, Color32 color, size_t stroke) {
                 plotline_high(a, b, color);
             }
         }
+
+        // if (a.x < b.x && a.y > b.y) {
+        //     a.x += 1, a.y += 1;
+        //     b.x += 1, b.y += 1;
+        // }
+        // else if (a.x > b.x && a.y < b.y) {
+        //     a.x += 1, a.y -= 1;
+        //     b.x += 1, b.y -= 1;
+        // }
     }
 }
 
@@ -134,18 +133,18 @@ void draw_circle(Point center, size_t r, Color32 color, size_t stroke, bool fill
     int lx = center.x - r;
     int rx = center.x + r;
 
-    for (int s = 0; s <= stroke; s++) {
+    for (int s = 0; s <= (int)stroke; s++) {
         for (int y = ty - s; y <= by + s; y++) {
             if (is_within_image(0, y)) {
                 for (int x = lx - s; x <= rx + s; x++) {
                     if (fill) {
-                        if (sqr_distance(center.x, center.y, x, y) < ((r + s) * (r + s)) - s) {
+                        if ((size_t)sqr_distance(center.x, center.y, x, y) < ((r + s) * (r + s)) - s) {
                             if (is_within_image(x, y)) {
                                 image[y][x] = color;
                             }
                         }
                     } else {
-                        if (sqr_distance(center.x, center.y, x, y) - ((r + s) * (r + s)) < 2 * (r + s) + 1) {
+                        if ((size_t)sqr_distance(center.x, center.y, x, y) - ((r + s) * (r + s)) < 2 * (r + s) + 1) {
                             if (is_within_image(x, y)) {
                                 image[y][x] = color;
                             }
@@ -164,16 +163,20 @@ void draw_rectangle(Point center, size_t width, size_t height, Color32 color, si
     int rx = center.x + width / 2;
 
     for (size_t s = 0; s <= stroke; s++) {
-        for (int x = lx - s + 1; x <= rx + s; x++) {
-            if (is_within_image(x, ty - s) && is_within_image(x, by + s)) {
+        for (int x = lx - (int)s; x <= rx + (int)s; x++) {
+            if (is_within_image(x, ty - s)) {
                 image[ty - s][x] = color;
+            }
+            if (is_within_image(x, by + s)) {
                 image[by + s][x] = color;
             }
         }
 
-        for (int y = ty - s + 1; y <= by + s; y++) {
-            if (is_within_image(lx - s, y) && is_within_image(rx + s, y)) {
+        for (int y = ty - (int)s; y <= by + (int)s; y++) {
+            if (is_within_image(lx - s, y)) {
                 image[y][lx - s] = color;
+            }
+            if (is_within_image(rx + s, y)) {
                 image[y][rx + s] = color;
             }
         }
@@ -199,7 +202,7 @@ void fill_image(Color32 color) {
 }
 
 void render_image(char *filepath) {
-    FILE *file = fopen(OUTPUT_FILE_PPM, "wb");
+    FILE *file = fopen(filepath, "wb");
     if (file == NULL) {
         fprintf(stderr, "Couldn't open the file. %s\n", strerror(errno));
         exit(1);
@@ -235,37 +238,25 @@ void render_image(char *filepath) {
     }
 }
 
-int main(int argc, char **argv) {
+int main(void) {
     time_t start = time(NULL);
     fill_image(BLUEISH_COLOR);
     srand(time(NULL));
 
-    int x = 0, y = 0, step = 60, stroke = 10;
-    Point a, b;
-    while (x < IMAGE_WIDTH * 4) {
-        // Relative negative value, 'cos stroke is added by X axis.
-        a.x = 0;
-        a.y = y;
-        b.x = x;
-        b.y = 0;
-        draw_line(a, b, palette[rand() % sizeof(palette) / sizeof(Color32)], stroke);
+    Point center = {.x = 0, .y = 0};
+    Color32 color;
 
-        x += step;
-        y += step;
-    }
+    
 
-    x = 0;
-    y = IMAGE_HEIGHT;
-    while (x < IMAGE_WIDTH * 4) {
-        // Relative negative value, 'cos stroke is added by X axis.
-        a.x = 0;
-        a.y = y;
-        b.x = x;
-        b.y = IMAGE_HEIGHT;
-        draw_line(a, b, palette[rand() % sizeof(palette) / sizeof(Color32)], stroke);
-
-        x += step;
-        y -= step;
+    for (int x = 240; x < IMAGE_WIDTH; x += 360) {
+        for (int y = 180; y < IMAGE_HEIGHT; y += 360) {
+            center.x = x;
+            center.y = y;
+            color = palette[rand() % sizeof(palette) / sizeof(Color32)];
+            for (int j = 1; j < 20; j++) {
+                draw_rectangle(center, j * 15, j * 15, color, 6, false);
+            }
+        }
     }
 
     render_image(OUTPUT_FILE_PPM);
